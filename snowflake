@@ -1,0 +1,33 @@
+Create database my_database;
+Create SCHEMA my_schema; 
+Create Table my_schema.sales_data( order_id int, cust_name string, prod_name string, quantity int, price float, order_date date);
+
+SELECT
+  *
+FROM
+  "MY_DATABASE"."MY_SCHEMA"."SALES_DATA"
+LIMIT
+  10;
+
+SELECT prod_name, SUM(quantity) AS total_sold, SUM(quantity * price) AS revenue
+FROM my_schema.sales_data
+GROUP BY prod_name
+ORDER BY revenue DESC;
+
+ALTER TABLE my_schema.sales_data CLUSTER BY (order_date);
+
+SELECT * FROM my_schema.sales_data;
+SELECT * FROM my_schema.sales_data; -- This runs instantly (cached)
+
+DELETE FROM my_schema.sales_data WHERE order_id = 1;
+
+SELECT * FROM my_schema.sales_data AT (OFFSET => -10);
+
+CREATE OR REPLACE TASK etl_task
+WAREHOUSE = COMPUTE_WH
+SCHEDULE = '60 MINUTE'
+AS 
+INSERT INTO my_schema.sales_summary 
+SELECT product_name, SUM(quantity), SUM(quantity * price)
+FROM my_schema.sales_data
+GROUP BY product_name;
